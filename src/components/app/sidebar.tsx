@@ -1,138 +1,154 @@
 'use client'
 
-import * as React from 'react'
 import {
-  LayoutDashboard,
-  UtensilsCrossed,
-  Users,
-  ChefHat,
-  LogOut,
-  Moon,
-  Sun,
-  Menu,
-  ChevronLeft,
-  ChevronRight,
-  ClipboardList,
+    LayoutDashboard,
+    UtensilsCrossed,
+    Users,
+    ChefHat,
+    ClipboardList,
+    ShieldCheck,
 } from 'lucide-react'
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuItem,
+    SidebarMenuButton,
+    SidebarRail,
 } from '@/components/ui/sidebar'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter, usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
+import { NavGroup } from './nav-group'
+import { NavUser } from './nav-user'
+import { ROLES, type Role } from '@/lib/roles'
+import type { NavGroup as NavGroupType } from './types'
 
-interface NavItem {
-  title: string
-  href: string
-  icon: React.ElementType
-  roles: string[]
+interface AppSidebarProps {
+    userRole: Role
+    userEmail?: string
 }
 
-const navItems: NavItem[] = [
-  {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-    roles: ['ADMIN'],
-  },
-  {
-    title: 'Gerenciar Mesas',
-    href: '/admin/mesas',
-    icon: UtensilsCrossed,
-    roles: ['ADMIN'],
-  },
-  {
-    title: 'Cardápio',
-    href: '/admin/cardapio',
-    icon: ClipboardList,
-    roles: ['ADMIN'],
-  },
-  {
-    title: 'Usuários',
-    href: '/admin/users',
-    icon: Users,
-    roles: ['ADMIN'],
-  },
-  {
-    title: 'Atendimento (Garçom)',
-    href: '/garcom',
-    icon: UtensilsCrossed,
-    roles: ['GARCOM', 'ADMIN'],
-  },
-  {
-    title: 'Cozinha',
-    href: '/cozinha',
-    icon: ChefHat,
-    roles: ['COZINHA', 'ADMIN'],
-  },
-]
+function buildNavGroups(userRole: Role): NavGroupType[] {
+    const isAdmin = userRole === ROLES.ADMIN || userRole === ROLES.SUPERADMIN
+    const isGarcom = userRole === ROLES.GARCOM || isAdmin
+    const isCozinha = userRole === ROLES.COZINHA || isAdmin
 
-export function AppSidebar({ userRole }: { userRole: string }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const supabase = createClient()
+    const groups: NavGroupType[] = []
 
-  const filteredNavItems = navItems.filter((item) =>
-    item.roles.includes(userRole)
-  )
+    if (isAdmin) {
+        groups.push({
+            title: 'Geral',
+            items: [
+                {
+                    title: 'Dashboard',
+                    url: '/admin',
+                    icon: LayoutDashboard,
+                },
+            ],
+        })
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
+        groups.push({
+            title: 'Administração',
+            items: [
+                {
+                    title: 'Gerenciar Mesas',
+                    url: '/admin/mesas',
+                    icon: UtensilsCrossed,
+                },
+                {
+                    title: 'Cardápio',
+                    url: '/admin/cardapio',
+                    icon: ClipboardList,
+                },
+                {
+                    title: 'Usuários',
+                    url: '/admin/users',
+                    icon: Users,
+                },
+                ...(userRole === ROLES.SUPERADMIN
+                    ? [
+                          {
+                              title: 'Super Admin',
+                              url: '/admin/super',
+                              icon: ShieldCheck,
+                              disabled: true,
+                          },
+                      ]
+                    : []),
+            ],
+        })
+    }
 
-  return (
-    <Sidebar className="border-r border-border/40 bg-background">
-      <SidebarHeader className="flex h-16 items-center border-b border-border/40 px-6">
-        <div className="flex items-center gap-2 font-bold text-primary">
-          <UtensilsCrossed className="h-6 w-6" />
-          <span>Gestor Pedidos</span>
-        </div>
-      </SidebarHeader>
-      <SidebarContent className="p-4">
-        <SidebarMenu>
-          {filteredNavItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                className={cn(
-                  'w-full justify-start gap-3 rounded-lg px-3 py-2 transition-colors',
-                  pathname === item.href
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted font-medium'
-                )}
-              >
-                <a href={item.href} className="flex items-center gap-3">
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.title}</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter className="border-t border-border/40 p-4">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleLogout}
-              className="w-full justify-start gap-3 rounded-lg px-3 py-2 text-red-500 hover:bg-red-50"
-            >
-              <LogOut className="h-5 w-5" />
-              <span>Sair</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
-  )
+    const operacionalItems = []
+    if (isGarcom) {
+        operacionalItems.push({
+            title: 'Atendimento (Garçom)',
+            url: '/garcom',
+            icon: UtensilsCrossed,
+        })
+    }
+    if (isCozinha) {
+        operacionalItems.push({
+            title: 'Cozinha',
+            url: '/cozinha',
+            icon: ChefHat,
+        })
+    }
+
+    if (operacionalItems.length > 0) {
+        groups.push({
+            title: 'Operacional',
+            items: operacionalItems,
+        })
+    }
+
+    return groups
+}
+
+export function AppSidebar({ userRole, userEmail }: AppSidebarProps) {
+    const navGroups = buildNavGroups(userRole)
+
+    const userName = userEmail
+        ? userEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+        : 'Usuário'
+
+    const sidebarData = {
+        user: {
+            name: userName,
+            email: userEmail || '',
+            avatar: '',
+        },
+        navGroups,
+    }
+
+    return (
+        <Sidebar collapsible='icon'>
+            <SidebarHeader>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton size='lg' asChild>
+                            <div className='flex items-center gap-2'>
+                                <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground'>
+                                    <UtensilsCrossed className='size-4' />
+                                </div>
+                                <div className='flex flex-col gap-0.5 leading-none'>
+                                    <span className='font-semibold'>Gestor Pedidos</span>
+                                    <span className='text-xs text-muted-foreground'>v1.0.0</span>
+                                </div>
+                            </div>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
+            <SidebarContent>
+                {sidebarData.navGroups.map((props) => (
+                    <NavGroup key={props.title} {...props} />
+                ))}
+            </SidebarContent>
+            <SidebarFooter>
+                <NavUser user={sidebarData.user} />
+            </SidebarFooter>
+            <SidebarRail />
+        </Sidebar>
+    )
 }
