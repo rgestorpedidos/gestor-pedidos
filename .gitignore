@@ -55,5 +55,5 @@ next-env.d.ts
 prisma/*.db
 prisma/*.db-journal
 
-# SaaS Guide
-docs/GUIA_SAAS_COMPLETO.md
+# Docs
+docs/*
