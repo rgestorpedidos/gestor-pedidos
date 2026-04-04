@@ -21,6 +21,97 @@ model Mesa {
   id        String   @id @default(cuid())
   numero    Int      @unique
   status    String   @default("LIVRE")
+  pedidos   Pedido[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Pedido {
+  id              String       @id @default(cuid())
+  mesaId          String
+  mesa            Mesa         @relation(fields: [mesaId], references: [id])
+  status          String       @default("ABERTO") // ABERTO | FECHADO
+  metodoPagamento String?
+  itens           PedidoItem[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([mesaId])
+}
+
+model PedidoItem {
+  id                 String       @id @default(cuid())
+  pedidoId           String
+  pedido             Pedido       @relation(fields: [pedidoId], references: [id])
+  itemCardapioId     String
+  itemCardapio       ItemCardapio @relation(fields: [itemCardapioId], references: [id])
+  nomeSnapshot       String
+  precoUnitario      Float
+  quantidade         Int
+  observacao         String?
+  opcoesSelecionadas Json?
+  status             String       @default("ENVIADO") // ENVIADO | PRONTO
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([pedidoId])
+  @@index([itemCardapioId])
+}
+
+// ─── Cardápio ────────────────────────────────────────────────────────────────
+
+model Categoria {
+  id        String         @id @default(cuid())
+  nome      String         @unique
+  ordem     Int            @default(0)
+  ativo     Boolean        @default(true)
+  itens     ItemCardapio[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model ItemCardapio {
+  id              String       @id @default(cuid())
+  nome            String
+  descricao       String?
+  preco           Float
+  imagemUrl       String?
+  vaiParaCozinha  Boolean      @default(true)
+  ativo           Boolean      @default(true)
+  categoriaId     String
+  categoria       Categoria    @relation(fields: [categoriaId], references: [id])
+  opcaoGrupos     OpcaoGrupo[]
+  pedidoItens     PedidoItem[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([categoriaId])
+}
+
+model OpcaoGrupo {
+  id             String       @id @default(cuid())
+  nome           String
+  obrigatorio    Boolean      @default(false)
+  minSelecoes    Int          @default(0)
+  maxSelecoes    Int          @default(1)
+  itemCardapioId String
+  item           ItemCardapio @relation(fields: [itemCardapioId], references: [id])
+  opcoes         Opcao[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([itemCardapioId])
+}
+
+model Opcao {
+  id             String     @id @default(cuid())
+  nome           String
+  precoAdicional Float      @default(0)
+  ativo          Boolean    @default(true)
+  opcaoGrupoId   String
+  grupo          OpcaoGrupo @relation(fields: [opcaoGrupoId], references: [id])
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([opcaoGrupoId])
 }

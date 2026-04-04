@@ -47,5 +47,13 @@ next-env.d.ts
 **/.agent
 **/.agent(legacy)
 
+# local tooling
+.cache/
+.claude/
+
+# local database
+prisma/*.db
+prisma/*.db-journal
+
 # SaaS Guide
 docs/GUIA_SAAS_COMPLETO.md

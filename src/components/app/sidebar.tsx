@@ -71,7 +71,6 @@ function buildNavGroups(userRole: Role): NavGroupType[] {
                               title: 'Super Admin',
                               url: '/admin/super',
                               icon: ShieldCheck,
-                              disabled: true,
                           },
                       ]
                     : []),

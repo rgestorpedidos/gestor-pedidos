@@ -1,271 +1,269 @@
-# 🏗️ Arquitetura — Gestor Pedidos
+﻿# Arquitetura — Gestor Pedidos
 
-## Sistema de Gerenciamento de Pedidos para Bares e Restaurantes
+> Single-tenant. Sistema de pedidos em tempo real para bares e restaurantes com 3 interfaces: garçom, cozinha e admin.
 
-> Single-tenant, real-time order management com 3 interfaces: garçom app, painel cozinha, admin dashboard
+> Atualização: Fases 0–3 concluídas. `/admin/users` implementado. Próximas frentes: métricas de pedidos no dashboard, `/admin/super` e migração para Postgres em produção.
 
 ---
 
-## 📐 Route Groups
+## Route Groups
 
 ```
 src/app/
+├── page.tsx                        # Root: redireciona por role
+│
 ├── (auth)/
-│   ├── login/           # POST email + senha → JWT
-│   └── register/        # Criação conta (admin only)
+│   └── login/page.tsx              # Magic link — sem senha
 │
-├── (garcom)/            # 👨‍💼 App do Garçom
-│   ├── mesas/           # Grid mesas com status
-│   ├── novo-pedido/     # Criar pedido (mesa → itens → confirmar)
-│   ├── mesas/[id]/      # Detalhes mesa + adicionar itens
-│   └── historico/       # Histórico pedidos
+├── (admin)/
+│   ├── layout.tsx                  # Guard: ADMIN | SUPERADMIN + SidebarInset
+│   ├── error.tsx                   # Error boundary do admin
+│   └── admin/
+│       ├── page.tsx                # Dashboard (Client Component, /api/admin/metrics)
+│       ├── loading.tsx
+│       ├── mesas/                  # CRUD de mesas
+│       ├── cardapio/               # Tabs: Itens + Categorias
+│       ├── users/                  # Gestão de usuários (page + loading)
+│       └── super/                  # SUPERADMIN exclusivo (page + loading)
 │
-├── (cozinha)/           # 👨‍🍳 Painel Cozinha (Real-time)
-│   ├── page.tsx         # Display pedidos confirmados
-│   └── pedidos/[id]/    # Detalhes + marcar como pronto
+├── (garcom)/
+│   ├── layout.tsx                  # Guard: GARCOM | ADMIN | SUPERADMIN
+│   ├── error.tsx                   # Error boundary do garçom
+│   └── garcom/
+│       ├── page.tsx                # Grid de mesas com ENVIADO count
+│       ├── loading.tsx
+│       └── mesa/[id]/
+│           ├── page.tsx            # Scroll menu cardápio + pedido ativo
+│           ├── loading.tsx
+│           └── not-found.tsx
 │
-├── (admin)/             # 🔑 Dashboard Admin
-│   ├── dashboard/       # Vendas, métricas
-│   ├── cardapio/        # CRUD itens menu
-│   ├── relatorios/      # Consumo, ranking
-│   ├── config/          # Config bar (mesas, horários)
-│   └── usuarios/        # Gerenciar staff
+├── (cozinha)/
+│   ├── layout.tsx                  # Guard: COZINHA | ADMIN | SUPERADMIN
+│   └── cozinha/page.tsx            # ← Painel da cozinha implementado
 │
 └── api/
-    ├── auth/            # POST login, GET user
-    ├── mesas/           # CRUD mesas
-    ├── pedidos/         # CRUD pedidos + transições
-    ├── cardapio/        # GET items
-    ├── relatorios/      # GET vendas/consumo
-    └── ws/              # WebSocket real-time
+    ├── auth/callback/route.ts      # Troca code do magic link por sessão
+    └── admin/metrics/route.ts      # GET → getDashboardMetrics()
 ```
 
 ---
 
-## 🗄️ Modelos de Dados (Prisma)
+## Autenticação — Magic Link (sem senha)
 
-### Core
-
-```prisma
-model User {
-  id        String @id @default(cuid())
-  email     String @unique
-  name      String
-  role      Role   // ADMIN | GARCOM | COZINHA
-  password  String // bcrypt
-  active    Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-enum Role {
-  ADMIN
-  GARCOM
-  COZINHA
-}
+```
+1. Usuário digita e-mail em /login
+2. checkEmailAuthorized() verifica se email existe em User (Prisma) e está active
+3. supabase.auth.signInWithOtp() envia magic link por e-mail
+4. Usuário clica no link → redireciona para /api/auth/callback?code=...
+5. exchangeCodeForSession(code) → sessão criada
+6. Redirect para / → root page redireciona por role
 ```
 
-### Mesas & Pedidos
-
-```prisma
-model Mesa {
-  id          String @id @default(cuid())
-  numero      Int @unique
-  capacidade  Int
-  status      MesaStatus @default(LIVRE)
-
-  pedidos     Pedido[]
-  consumo     Consumo[]
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-enum MesaStatus {
-  LIVRE
-  OCUPADA
-  RESERVADA
-}
-
-model Pedido {
-  id          String @id @default(cuid())
-  numero      Int @autoincrement
-  mesa        Mesa @relation(fields: [mesaId], references: [id])
-  mesaId      String
-
-  items       PedidoItem[]
-  status      PedidoStatus @default(ABERTO)
-  totalValue  Decimal @default(0)
-
-  criadoPor   User? @relation(fields: [criadoPorId], references: [id])
-  criadoPorId String?
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-enum PedidoStatus {
-  ABERTO
-  CONFIRMADO
-  PREPARANDO
-  PRONTO
-  ENTREGUE
-  CANCELADO
-}
-
-model PedidoItem {
-  id          String @id @default(cuid())
-  pedido      Pedido @relation(fields: [pedidoId], references: [id])
-  pedidoId    String
-
-  item        ItemCardapio @relation(fields: [itemId], references: [id])
-  itemId      String
-
-  quantidade  Int
-  observacoes String?
-  status      ItemStatus @default(PENDENTE)
-
-  createdAt   DateTime @default(now())
-}
-
-enum ItemStatus {
-  PENDENTE
-  PREPARANDO
-  PRONTO
-}
-```
-
-### Menu & Consumo
-
-```prisma
-model ItemCardapio {
-  id        String @id @default(cuid())
-  nome      String
-  preco     Decimal
-  categoria String  // "bebida", "prato", "sobremesa"
-  ativo     Boolean @default(true)
-
-  items     PedidoItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Consumo {
-  id          String @id @default(cuid())
-  mesa        Mesa @relation(fields: [mesaId], references: [id])
-  mesaId      String
-
-  totalSpent  Decimal
-  itemsCount  Int
-  date        DateTime
-
-  createdAt   DateTime @default(now())
-}
-```
+**Implementação:** `shouldCreateUser: false` — usuário deve ser criado via script `create-superadmin` ou pelo painel admin (Fase 4).
 
 ---
 
-## 🔄 Fluxos Principais
+## RBAC (Role-Based Access Control)
 
-### 1. Criar Pedido (Garçom)
-
-```
-Garçom Seleciona Mesa
-  → GET /api/mesas
-  → Clica Mesa Livre
-  → POST /api/pedidos { mesaId }
-  → Página "Novo Pedido"
-    → GET /api/cardapio
-    → Seleciona itens
-    → POST /api/pedidos/[id]/items { itemId, qty, obs }
-    → Clica "Confirmar Pedido"
-    → PATCH /api/pedidos/[id] { status: CONFIRMADO }
-  ✅ Pedido criado
-  → PATCH /api/mesas/[id] { status: OCUPADA }
-```
-
-### 2. Gerenciar Pedido (Cozinha)
-
-```
-Cozinha vê painel real-time (WebSocket)
-  → GET /api/pedidos?status=CONFIRMADO,PREPARANDO
-  → WebSocket updates quando novo pedido chega
-  → Clica em pedido
-    → Vê lista PedidoItems
-    → Marca item como PREPARANDO
-    → Marca item como PRONTO
-    → Quando TODOS items PRONTO → PATCH /api/pedidos/[id] { status: PRONTO }
-  → Garçom recolhe prato
-    → PATCH /api/pedidos/[id] { status: ENTREGUE }
-    → PATCH /api/mesas/[id] { status: LIVRE }
-```
-
-### 3. Gerar Relatório (Admin)
-
-```
-Admin em dashboard:
-  → GET /api/relatorios/vendas?data=2026-03-22
-    ← { totalVendas, topProdutos, horarioPico }
-  → GET /api/relatorios/consumo?mesaId=1
-    ← { gastoTotal, itemsMais, frequencia }
-```
-
----
-
-## 🔐 RBAC (Role-Based Access Control)
-
-| Rota | ADMIN | GARCOM | COZINHA |
-|------|-------|--------|---------|
-| `(garcom)/mesas` | ❌ | ✅ | ❌ |
-| `(garcom)/novo-pedido` | ❌ | ✅ | ❌ |
-| `(cozinha)/` | ❌ | ❌ | ✅ |
-| `(admin)/dashboard` | ✅ | ❌ | ❌ |
-| `(admin)/cardapio` | ✅ | ❌ | ❌ |
-| `POST /api/pedidos` | ❌ | ✅ | ❌ |
-| `PATCH /api/pedidos/[id]/status` | ❌ | ❌ | ✅ |
-
-Middleware enforça em `src/middleware.ts`.
-
----
-
-## 🌐 Real-time (WebSocket)
-
-### Cozinha Panel
+### Constantes (`src/lib/roles.ts`)
 
 ```typescript
-// src/app/api/ws/route.ts
-// WebSocket para atualizações real-time
+export const ROLES = {
+  SUPERADMIN: 'SUPERADMIN',
+  ADMIN: 'ADMIN',
+  COZINHA: 'COZINHA',
+  GARCOM: 'GARCOM',
+} as const
 
-Evento "novo-pedido" → Cozinha recebe notificação
-Evento "item-pronto" → Garçom vê atualização
-Evento "pedido-pronto" → Garçom notificado
+export const ADMIN_ROLES = [ROLES.SUPERADMIN, ROLES.ADMIN]
 ```
 
-### Polling (Garçom)
+### Guard de sessão (`src/lib/auth.ts`)
+
+```
+getUserRole()
+  → supabase.auth.getUser()     # Revalida token com servidor Supabase
+  → prisma.user.findUnique()    # Busca role + active no banco
+  → retorna Role | null
+```
+
+> **Regra crítica:** usa `getUser()` (não `getSession()`). `getSession()` lê cookie sem revalidar com o servidor — vulnerável a session fixation.
+
+### Matriz de acesso
+
+| Rota | SUPERADMIN | ADMIN | GARCOM | COZINHA |
+|------|:---:|:---:|:---:|:---:|
+| `/admin` | ✅ | ✅ | ❌ | ❌ |
+| `/admin/cardapio` | ✅ | ✅ | ❌ | ❌ |
+| `/garcom` | ✅ | ✅ | ✅ | ❌ |
+| `/cozinha` | ✅ | ✅ | ❌ | ✅ |
+| `/admin/super` | ✅ | ❌ | ❌ | ❌ |
+
+---
+
+## Modelos de Dados (Prisma)
+
+### Usuários e Mesas
+
+```
+User ──── (login via Supabase Auth, id = UUID do Auth)
+Mesa ──── Pedido[] (relação 1:N)
+```
+
+### Pedido e Itens
+
+```
+Mesa → Pedido (ABERTO | FECHADO)
+     → PedidoItem (ENVIADO | PRONTO)
+          ↓ FK itemCardapioId (RESTRICT)
+       ItemCardapio
+```
+
+**PedidoItem** armazena snapshots imutáveis:
+- `nomeSnapshot` — nome do item na hora do pedido
+- `precoUnitario` — preço base + adicionais das opções selecionadas
+- `opcoesSelecionadas Json?` — `Record<grupoId, opcaoId[]>`
+
+### Cardápio
+
+```
+Categoria → ItemCardapio (vaiParaCozinha, ativo)
+                ↓
+           OpcaoGrupo (obrigatorio, minSelecoes, maxSelecoes)
+                ↓
+             Opcao (precoAdicional)
+```
+
+`ON DELETE RESTRICT` em toda a cadeia — garante integridade referencial. Para remover um item do cardápio, use `ativo = false`.
+
+---
+
+## Fluxo do Pedido
+
+```
+Garçom abre mesa
+  → abrirOuObterPedido(mesaId)         # cria Pedido ABERTO + mesa → OCUPADA
+  → Garçom navega no cardápio
+  → ProductModal (itens com opcaoGrupos)
+  → adicionarItem() no Zustand store   # RASCUNHO local
+  → "Enviar Rodada" no CartDrawer
+  → enviarRodada(mesaId, itens[])      # cria PedidoItems ENVIADO no banco
+        ↓ (itens vaiParaCozinha = false → já nascem PRONTO)
+  → Cozinha vê itens ENVIADO
+  → marcarItemPronto(itemId)           # ENVIADO → PRONTO
+  → CartDrawer mostra itens PRONTO
+  → "Fechar Conta" (bloqueado se ENVIADO > 0)
+  → fecharPedido(mesaId, pedidoId, metodoPagamento)
+        → Pedido → FECHADO + Mesa → LIVRE
+```
+
+---
+
+## Estado do Cliente (Zustand)
 
 ```typescript
-// App garçom faz polling GET /api/pedidos a cada 2-3s
-// Menos crítico, menos load
+// src/stores/carrinho-garcom.ts
+useCarrinhoGarcomStore {
+  carrinhos: Record<mesaId, { itens: CarrinhoItem[], expiresAt: number }>
+  activeModal: string | null  // 'cart' | 'product:itemId' | null
+
+  // Persisted: apenas `carrinhos` (TTL 8h por mesaId)
+  // activeModal: ephemeral — não sobrevive reload
+}
 ```
 
----
-
-## 🛠️ Tech Stack
-
-- **Frontend:** Next.js 14+ (App Router), React, Tailwind CSS
-- **UI Components:** shadcn/ui
-- **State:** Zustand + React Hooks
-- **DB:** Supabase (PostgreSQL) + Prisma ORM
-- **Real-time:** Next.js WebSocket (built-in)
-- **Auth:** Supabase Auth (JWT)
-- **Deploy:** Vercel + Supabase Hosted
+**Controle de modal (`activeModal`):**
+- `null` → nenhum modal aberto (polling ativo)
+- `'cart'` → CartDrawer aberto (polling pausado)
+- `'product:id'` → ProductModal aberto (polling pausado)
+- Abertura de um fecha o outro implicitamente
 
 ---
 
-## 📋 Próxima Etapa
+## Polling de Atualizações
 
-Documentação completa será preenchida durante **Fase 1: Setup Base**.
+```typescript
+// src/hooks/useTabPolling.ts
+useTabPolling(mesaId, 10_000)
+  → setInterval(router.refresh(), 10s)
+  → pausa quando activeModal !== null
+  → pausa quando document.hidden
+  → refresh imediato ao voltar para a aba
+```
 
-Veja [ROADMAP.md](./ROADMAP.md) para cronograma.
+`router.refresh()` re-fetcha Server Components sem navegação, mantendo estado client-side.
+
+---
+
+## Server Actions
+
+### Guards disponíveis
+
+| Guard | Arquivo | Roles autorizados |
+|-------|---------|-------------------|
+| `requireAdmin()` | `actions/admin/*.ts` | SUPERADMIN, ADMIN |
+| `requireGarcom()` | `actions/garcom/pedidos.ts` | SUPERADMIN, ADMIN, GARCOM |
+| `requireCozinha()` | `actions/cozinha/*.ts` *(Fase 3)* | SUPERADMIN, ADMIN, COZINHA |
+
+Todos os guards: `getUser()` → Prisma `findUnique` → verifica `active` e `role`.
+
+### `actions/admin/cardapio.ts`
+- CRUD: Categoria (3), ItemCardapio (4 + toggle), OpcaoGrupo (3), Opcao (3)
+- `fkErrorMsg()` — trata `P2003` (FK RESTRICT) com mensagem legível
+- `revalidatePath('/garcom')` em mutations que afetam itens visíveis ao garçom
+
+### `actions/garcom/pedidos.ts`
+- `abrirOuObterPedido(mesaId)` — `$transaction`: busca Pedido ABERTO ou cria + mesa → OCUPADA
+- `enviarRodada(mesaId, itens[])` — Zod + validação DB + grupos obrigatórios + snapshots + bypass cozinha
+- `cancelarItem(mesaId, itemId)` — deleta se ENVIADO; bloqueia se PRONTO
+- `fecharPedido(mesaId, pedidoId, metodoPagamento?)` — bloqueia se count(ENVIADO) > 0
+- `confirmarReserva(mesaId)` — RESERVADA → LIVRE
+- `assertPedidoAcessivel(mesaId, pedidoId)` — helper interno: verifica propriedade do pedido
+
+---
+
+## Migrations
+
+O projeto usa `prisma migrate dev` (não `db push`).
+
+| Migration | Conteúdo |
+|-----------|---------|
+| `0_init` | Baseline: User, Mesa, Pedido, PedidoItem (v1) |
+| `20260323022251_add_cardapio` | Categoria, ItemCardapio, OpcaoGrupo, Opcao |
+| `20260323023226_reimplementar_garcom` | PedidoItem v2 + Pedido simplificado |
+
+---
+
+## Camadas de Segurança
+
+```
+Request
+  ↓
+Middleware          # Verifica sessão existe (cookie válido)
+  ↓
+Layout (Server)    # getUserRole() → getUser() + Prisma → verifica role
+  ↓
+Server Action      # Guard próprio → getUser() + Prisma novamente (defense in depth)
+  ↓
+Prisma query       # Dados retornados apenas se tudo passou
+```
+
+**BOLA (OWASP A01):** aceito por design no garçom — single-tenant, todos os garçons têm igual acesso a todas as mesas. `assertPedidoAcessivel` previne acesso a pedidos de outras mesas.
+
+---
+
+## Sidebar
+
+```
+components/app/
+├── sidebar.tsx      # AppSidebar — monta sidebarData por role
+├── nav-group.tsx    # SidebarGroup colapsável com dropdown collapsed
+├── nav-user.tsx     # Footer: Avatar + dropdown com logout
+└── types.ts         # NavLink | NavCollapsible | NavGroup | SidebarData
+```
+
+- Grupos: **Geral**, **Administração**, **Operacional**
+- Item `Super Admin` apenas quando `userRole === ROLES.SUPERADMIN`
+- Items sem rota → `disabled: true` → `opacity-40`, não clicáveis
+
+

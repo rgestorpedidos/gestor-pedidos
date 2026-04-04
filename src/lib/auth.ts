@@ -1,16 +1,24 @@
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import type { Role } from '@/lib/roles'
 
-export async function getUserRole() {
+export async function getUserRole(): Promise<Role | null> {
+  const session = await getUserSession()
+  return session?.role ?? null
+}
+
+export async function getUserSession(): Promise<{ role: Role; userId: string } | null> {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user }, error } = await supabase.auth.getUser()
 
-  if (!session) return null
+  if (error || !user) return null
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true }
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { role: true, active: true },
   })
 
-  return user?.role || null
+  if (!dbUser || !dbUser.active) return null
+
+  return { role: dbUser.role as Role, userId: user.id }
 }

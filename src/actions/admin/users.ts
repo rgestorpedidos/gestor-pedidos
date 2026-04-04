@@ -9,6 +9,7 @@ import { ADMIN_ROLES, ROLES, type Role } from '@/lib/roles'
 
 type AdminContext = {
   role: Role
+  userId: string
 }
 
 type UserActionResult =
@@ -50,23 +51,20 @@ async function requireAdmin(): Promise<AdminContext> {
     throw new Error('Acesso negado')
   }
 
-  return {
-    role: dbUser.role as Role,
-  }
+  return { role: dbUser.role as Role, userId: user.id }
+}
+
+async function requireSuperAdmin(): Promise<AdminContext> {
+  const ctx = await requireAdmin()
+  if (ctx.role !== ROLES.SUPERADMIN) throw new Error('Acesso negado: requer SUPERADMIN')
+  return ctx
 }
 
 async function findAuthUserByEmail(email: string) {
   const adminClient = await createAdminClient()
-  const { data, error } = await adminClient.auth.admin.listUsers({
-    page: 1,
-    perPage: 1000,
-  })
-
-  if (error) {
-    throw new Error('Falha ao consultar usuários do Supabase Auth')
-  }
-
-  return data.users.find((authUser) => authUser.email?.toLowerCase() === email.toLowerCase())
+  const { data, error } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 })
+  if (error) throw new Error('Falha ao consultar usuários do Supabase Auth')
+  return data.users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
 }
 
 function canAssignRole(actorRole: Role, targetRole: Role) {
@@ -194,6 +192,41 @@ export async function updateUserRole(
     return { success: true }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erro ao atualizar role'
+    return { success: false, error: message }
+  }
+}
+
+export async function deleteUser(userId: string): Promise<UserActionResult> {
+  try {
+    const actor = await requireSuperAdmin()
+
+    if (actor.userId === userId) {
+      return { success: false, error: 'Não é possível excluir sua própria conta' }
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    })
+
+    if (!user) {
+      return { success: false, error: 'Usuário não encontrado' }
+    }
+
+    // Prisma é a fonte de verdade do RBAC: sem registro aqui o login é bloqueado no check-auth
+    await prisma.user.delete({ where: { id: userId } })
+
+    // best-effort: falha aqui não reabilita o login pois o Prisma já removeu o registro
+    const adminClient = await createAdminClient()
+    await adminClient.auth.admin.deleteUser(userId)
+
+    revalidatePath('/admin/super')
+    revalidatePath('/admin/users')
+    revalidatePath('/admin')
+
+    return { success: true }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Erro ao excluir usuário'
     return { success: false, error: message }
   }
 }
