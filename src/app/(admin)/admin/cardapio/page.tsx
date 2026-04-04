@@ -8,7 +8,10 @@ export default async function CardapioPage() {
   const [categorias, itens] = await Promise.all([
     prisma.categoria.findMany({ orderBy: { ordem: 'asc' } }),
     prisma.itemCardapio.findMany({
-      include: { categoria: { select: { nome: true } } },
+      include: {
+        categoria: { select: { nome: true } },
+        opcaoGrupos: { include: { opcoes: { orderBy: { nome: 'asc' } } }, orderBy: { nome: 'asc' } },
+      },
       orderBy: [{ categoria: { ordem: 'asc' } }, { nome: 'asc' }],
     }),
   ])
@@ -30,6 +33,19 @@ export default async function CardapioPage() {
     ativo: i.ativo,
     categoriaId: i.categoriaId,
     categoriaNome: i.categoria.nome,
+    opcaoGrupos: i.opcaoGrupos.map((g) => ({
+      id: g.id,
+      nome: g.nome,
+      obrigatorio: g.obrigatorio,
+      minSelecoes: g.minSelecoes,
+      maxSelecoes: g.maxSelecoes,
+      opcoes: g.opcoes.map((o) => ({
+        id: o.id,
+        nome: o.nome,
+        precoAdicional: o.precoAdicional,
+        ativo: o.ativo,
+      })),
+    })),
   }))
 
   return (

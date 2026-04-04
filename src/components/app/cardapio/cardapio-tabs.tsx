@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react'
 import { toast } from 'sonner'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Settings2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -29,11 +29,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { deleteCategoria, deleteItemCardapio, toggleItemAtivo } from '@/actions/admin/cardapio'
 import { CategoriaForm } from './categoria-form'
 import { ItemForm } from './item-form'
+import { OpcaoGrupoSheet } from './opcao-grupo-sheet'
 import type { CategoriaData } from './categoria-form'
 import type { ItemData, CategoriaOption } from './item-form'
+import type { GrupoData } from './opcao-grupo-sheet'
 
 interface ItemWithCategoria extends ItemData {
   categoriaNome: string
+  opcaoGrupos: GrupoData[]
 }
 
 interface CardapioTabsProps {
@@ -189,6 +192,7 @@ export function CardapioTabs({ categorias, itens }: CardapioTabsProps) {
                   <TableHead>Preço</TableHead>
                   <TableHead>Cozinha</TableHead>
                   <TableHead>Ativo</TableHead>
+                  <TableHead className="w-[80px]">Grupos</TableHead>
                   <TableHead className="w-[100px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -216,6 +220,16 @@ export function CardapioTabs({ categorias, itens }: CardapioTabsProps) {
                     </TableCell>
                     <TableCell>
                       <ToggleAtivo id={item.id} ativo={item.ativo} />
+                    </TableCell>
+                    <TableCell>
+                      <OpcaoGrupoSheet itemId={item.id} itemNome={item.nome} grupos={item.opcaoGrupos}>
+                        <Button variant="ghost" size="icon" title="Grupos de opções">
+                          <Settings2 className="h-4 w-4" />
+                          {item.opcaoGrupos.length > 0 && (
+                            <span className="ml-1 text-xs">{item.opcaoGrupos.length}</span>
+                          )}
+                        </Button>
+                      </OpcaoGrupoSheet>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
