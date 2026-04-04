@@ -57,7 +57,7 @@
 - [x] `vaiParaCozinha` por item — bypass da fila da cozinha para bebidas/não-preparados
 - [x] `ON DELETE RESTRICT` em toda a cadeia cardápio → pedido
 - [x] Server Actions CRUD com `requireAdmin()` + Zod (13 actions)
-- [x] `/admin/cardapio` — tabs Itens e Categorias, toggle de disponibilidade
+- [x] `/admin/cardapio` — tabs Itens e Categorias, toggle de disponibilidade, gestão de grupos de opções (OpcaoGrupoSheet)
 - [x] Sidebar: "Cardápio" ativado
 
 ## Fase 2b — Schema Garçom Reimplementado ✅

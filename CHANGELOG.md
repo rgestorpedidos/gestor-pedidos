@@ -5,6 +5,16 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ---
 
+## [0.12.0] — 2026-04-04
+
+### Cardápio — UI de grupos de opções
+
+- **`src/components/app/cardapio/opcao-grupo-sheet.tsx`** — novo componente Sheet; lista grupos do item, cria/deleta `OpcaoGrupo` (nome, obrigatório, min/max seleções), adiciona/deleta `Opcao` (nome, preço adicional); estado expandido por grupo; `useTransition` + toast em cada ação
+- **`/admin/cardapio/page.tsx`** — query extendida com `include: { opcaoGrupos: { include: { opcoes } } }`; dados serializados e passados para `CardapioTabs`
+- **`CardapioTabs`** — nova coluna "Grupos" com botão de engrenagem (`Settings2`) que abre `OpcaoGrupoSheet`; tipo `ItemWithCategoria` extendido com `opcaoGrupos: GrupoData[]`
+
+---
+
 ## [0.11.0] — 2026-04-04
 
 ### Superadmin (Fase 5)
