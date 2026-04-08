@@ -157,14 +157,18 @@ function AddOpcaoForm({ grupoId, onClose }: { grupoId: string; onClose: () => vo
       <div className="flex-1">
         <Input name="nome" placeholder="Nome da opção" required disabled={isPending} />
       </div>
-      <div className="w-28">
+      <div className="w-28 relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm flex items-center pointer-events-none">
+          R$
+        </span>
         <Input
           name="precoAdicional"
           type="number"
           step="0.01"
           min="0"
-          placeholder="+ R$"
-          defaultValue="0"
+          placeholder="0,00"
+          defaultValue="0.00"
+          className="pl-9"
           disabled={isPending}
         />
       </div>

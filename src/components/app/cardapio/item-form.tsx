@@ -109,17 +109,23 @@ export function ItemForm({ item, categorias, children }: ItemFormProps) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="preco">Preço (R$)</Label>
-            <Input
-              id="preco"
-              name="preco"
-              type="number"
-              step="0.01"
-              min="0.01"
-              defaultValue={item?.preco}
-              placeholder="0,00"
-              required
-            />
+            <Label htmlFor="preco">Preço</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm pointer-events-none">
+                R$
+              </span>
+              <Input
+                id="preco"
+                name="preco"
+                type="number"
+                step="0.01"
+                min="0.01"
+                defaultValue={item?.preco}
+                placeholder="0,00"
+                className="pl-9"
+                required
+              />
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">

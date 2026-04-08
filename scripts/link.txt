@@ -1,0 +1,1 @@
+https://ffsnbutklifgdpkikoea.supabase.co/auth/v1/verify?token=4f4dd29ddd3a8f7e3416c80a1c06f6a464f0b70e4be06297b59f0c2d&type=magiclink&redirect_to=https://rgestor-pedidos.vercel.app

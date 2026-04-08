@@ -5,6 +5,24 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ---
 
+## [0.13.0] — 2026-04-08
+
+### Cardápio — Grupos de Opções: deploy na produção + refinamentos de UX
+
+- **`src/components/app/cardapio/cardapio-tabs.tsx`** — coluna "Grupos" entrou em produção (branch `feat/admin-users` mergeada em `main` e deployada na Vercel); ícone de engrenagem `Settings2` abre o `OpcaoGrupoSheet`
+- **`src/components/app/cardapio/opcao-grupo-sheet.tsx`** — input de `precoAdicional` refatorado: prefixo "R$" fixo com posicionamento absoluto (`pl-9`), placeholder `0,00`, `defaultValue` `0.00` — padrão nativo Shadcn
+- **`src/components/app/cardapio/item-form.tsx`** — campo "Preço" recebe o mesmo tratamento: wrapper `relative`, prefixo "R$" e `pl-9` no Input; label simplificado de "Preço (R$)" para "Preço"
+
+### Core — Sincronização de Versão
+
+- **`src/lib/version.ts`** *(novo)* — constante `APP_VERSION` centralizada; fonte única da verdade para a versão exibida na UI
+- **`src/components/app/sidebar.tsx`** — substituído `v1.0.0` hardcoded por `v{APP_VERSION}` importado de `@/lib/version`
+- **`package.json`** — campo `version` atualizado de `0.1.0` para `0.13.0` (sincronizado com o histórico real do Changelog)
+
+
+
+---
+
 ## [0.12.0] — 2026-04-04
 
 ### Cardápio — UI de grupos de opções

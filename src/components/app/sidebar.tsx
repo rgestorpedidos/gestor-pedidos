@@ -22,6 +22,7 @@ import { NavGroup } from './nav-group'
 import { NavUser } from './nav-user'
 import { ROLES, type Role } from '@/lib/roles'
 import type { NavGroup as NavGroupType } from './types'
+import { APP_VERSION } from '@/lib/version'
 
 interface AppSidebarProps {
     userRole: Role
@@ -132,7 +133,7 @@ export function AppSidebar({ userRole, userEmail }: AppSidebarProps) {
                                 </div>
                                 <div className='flex flex-col gap-0.5 leading-none'>
                                     <span className='font-semibold'>Gestor Pedidos</span>
-                                    <span className='text-xs text-muted-foreground'>v1.0.0</span>
+                                    <span className='text-xs text-muted-foreground'>v{APP_VERSION}</span>
                                 </div>
                             </div>
                         </SidebarMenuButton>
