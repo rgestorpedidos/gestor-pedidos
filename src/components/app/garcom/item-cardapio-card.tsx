@@ -4,7 +4,6 @@ import Image from 'next/image'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 import type { ItemCardapioData } from './types'
 
 interface ItemCardapioCardProps {
@@ -15,54 +14,52 @@ interface ItemCardapioCardProps {
 export function ItemCardapioCard({ item, onAdd }: ItemCardapioCardProps) {
   return (
     <div
-      className={cn(
-        'flex items-start gap-3 p-3 rounded-xl border bg-card',
-        'active:bg-accent transition-colors'
-      )}
+      className="flex items-center justify-between py-4 border-b border-border last:border-b-0 cursor-pointer"
+      onClick={() => onAdd(item)}
     >
-      {/* Imagem */}
-      {item.imagemUrl && (
-        <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg">
-          <Image
-            src={item.imagemUrl}
-            alt={item.nome}
-            fill
-            className="object-cover"
-            sizes="80px"
-          />
-        </div>
-      )}
-
-      {/* Conteúdo */}
-      <div className="flex flex-1 flex-col gap-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <p className="font-semibold text-sm leading-tight">{item.nome}</p>
+      {/* Esquerda: nome, descrição, preço */}
+      <div className="flex-1 pr-4">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3 className="font-medium text-foreground text-base">{item.nome}</h3>
           {!item.vaiParaCozinha && (
             <Badge variant="outline" className="text-xs shrink-0 text-green-700 border-green-300">
               Imediato
             </Badge>
           )}
         </div>
-
         {item.descricao && (
-          <p className="text-xs text-muted-foreground line-clamp-2">{item.descricao}</p>
+          <p className="text-muted-foreground text-sm mt-1 line-clamp-2">{item.descricao}</p>
         )}
+        <p className="text-foreground font-semibold mt-2">
+          {item.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+        </p>
+      </div>
 
-        <div className="flex items-center justify-between mt-1">
-          <span className="font-bold text-sm">
-            {item.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-          </span>
-
-          {/* Touch target mínimo 44px — zona do polegar */}
-          <Button
-            size="sm"
-            className="h-9 w-9 rounded-full p-0"
-            onClick={() => onAdd(item)}
-            aria-label={`Adicionar ${item.nome}`}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+      {/* Direita: imagem com botão sobreposto */}
+      <div className="relative flex-shrink-0">
+        <div className="relative h-24 w-24 rounded-lg overflow-hidden bg-muted">
+          {item.imagemUrl ? (
+            <Image
+              src={item.imagemUrl}
+              alt={item.nome}
+              fill
+              className="object-cover"
+              sizes="96px"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gray-100">
+              <span className="text-xs text-gray-400">Sem foto</span>
+            </div>
+          )}
         </div>
+        <Button
+          size="sm"
+          className="absolute bottom-1 right-1 h-7 w-7 p-0 rounded-full bg-white hover:bg-white/90 text-primary shadow-sm border border-gray-100 z-10"
+          onClick={(e) => { e.stopPropagation(); onAdd(item) }}
+          aria-label={`Adicionar ${item.nome}`}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   )
