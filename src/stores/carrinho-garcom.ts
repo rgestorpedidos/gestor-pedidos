@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { persist, createJSONStorage, subscribeWithSelector } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 // ─── TTL ──────────────────────────────────────────────────────────────────────
 
@@ -55,9 +55,8 @@ export type CarrinhoStore = CarrinhoState & CarrinhoActions
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useCarrinhoGarcomStore = create<CarrinhoStore>()(
-  subscribeWithSelector(
-    persist(
-      (set, get) => ({
+  persist(
+    (set, get) => ({
         carrinhos: {},
         activeModal: null,
 
@@ -163,6 +162,5 @@ export const useCarrinhoGarcomStore = create<CarrinhoStore>()(
         // Persiste apenas os carrinhos — activeModal é estado efêmero de sessão
         partialize: (state) => ({ carrinhos: state.carrinhos }),
       }
-    )
   )
 )
