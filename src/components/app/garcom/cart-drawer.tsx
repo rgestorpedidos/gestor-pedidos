@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Trash2, ChefHat, CheckCircle2, ShoppingBasket, Loader2 } from 'lucide-react'
@@ -71,9 +71,12 @@ function SecaoHeader({
 
 export function CartDrawer({ mesaId, mesaNumero, pedidoAtivo, onClose }: CartDrawerProps) {
   const router = useRouter()
+  const [isMounted, setIsMounted] = useState(false)
   const [metodoPagamento, setMetodoPagamento] = useState<string>('')
   const [isPendingRodada, startRodada] = useTransition()
   const [isPendingFecha, startFecha] = useTransition()
+
+  useEffect(() => { setIsMounted(true) }, [])
 
   const { getItens, limparCarrinho, removerItem } = useCarrinhoGarcomStore((state) => ({
     getItens: state.getItens,
@@ -81,7 +84,8 @@ export function CartDrawer({ mesaId, mesaNumero, pedidoAtivo, onClose }: CartDra
     removerItem: state.removerItem,
   }))
 
-  const rascunho = getItens(mesaId)
+  const rascunho = isMounted ? getItens(mesaId) : []
+
 
   const enviados = pedidoAtivo?.itens.filter((i) => i.status === 'ENVIADO') ?? []
   const prontos = pedidoAtivo?.itens.filter((i) => i.status === 'PRONTO') ?? []

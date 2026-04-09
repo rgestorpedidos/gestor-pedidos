@@ -27,6 +27,10 @@ export function MesaGarcomView({
   categorias,
   pedidoAtivo,
 }: MesaGarcomViewProps) {
+  // Guard de hydration: evita mismatch entre SSR e localStorage do Zustand
+  const [isMounted, setIsMounted] = useState(false)
+  useEffect(() => { setIsMounted(true) }, [])
+
   // Polling de 10s — pausa quando modal/drawer aberto
   useTabPolling(mesaId, 10_000)
 
@@ -46,7 +50,8 @@ export function MesaGarcomView({
   // Estado local para controle do selectedItem (ProductModal — 2c.5)
   const [selectedItem, setSelectedItem] = useState<ItemCardapioData | null>(null)
 
-  const totalItens = getTotalItens(mesaId)
+  const totalItens = isMounted ? getTotalItens(mesaId) : 0
+
 
   const activeModal = useCarrinhoGarcomStore((state) => state.activeModal)
   const setActiveModal = useCarrinhoGarcomStore((state) => state.setActiveModal)
