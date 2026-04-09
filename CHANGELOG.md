@@ -5,6 +5,14 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ---
 
+## [0.15.1] — 2026-04-09
+
+### UX do Garçom
+
+- **`MesaGarcomPage`** — Ocultadas categorias do menu quando todos os seus itens estão inativos ou quando a categoria não possui itens, evitando categorias "fantasmas" na navegação.
+
+---
+
 ## [0.13.0] — 2026-04-08
 
 ### Cardápio — Grupos de Opções: deploy na produção + refinamentos de UX

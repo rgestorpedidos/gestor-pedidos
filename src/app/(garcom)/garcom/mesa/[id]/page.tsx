@@ -36,7 +36,10 @@ export default async function MesaGarcomPage({ params }: PageProps) {
     }),
 
     prisma.categoria.findMany({
-      where: { ativo: true },
+      where: { 
+        ativo: true,
+        itens: { some: { ativo: true } }
+      },
       orderBy: { ordem: 'asc' },
       include: {
         itens: {
