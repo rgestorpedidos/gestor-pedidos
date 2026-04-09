@@ -5,6 +5,14 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ---
 
+## [0.15.3] — 2026-04-09
+
+### Correções de Core e UX
+
+- **`src/actions/admin/users.ts`** & **`src/actions/admin/cardapio.ts`** — Corrigido erro de coerção do Zod em campos booleanos (`ativo`, `vaiParaCozinha`, `obrigatorio`). O `z.coerce.boolean()` interpretava a string `"false"` como `true`, impedindo a desativação de usuários, categorias e itens. Implementado um preprocessador customizado para tratar corretamente os valores de formulário.
+
+---
+
 ## [0.15.2] — 2026-04-09
 
 ### Correção

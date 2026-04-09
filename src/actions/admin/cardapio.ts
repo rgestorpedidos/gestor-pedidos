@@ -36,10 +36,12 @@ export type CardapioActionResult =
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 
+const booleanSchema = z.preprocess((val) => val === 'true', z.boolean())
+
 const categoriaSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório').max(60),
   ordem: z.coerce.number().int().min(0).optional(),
-  ativo: z.coerce.boolean().optional(),
+  ativo: booleanSchema.optional(),
 })
 
 const itemCardapioSchema = z.object({
@@ -47,15 +49,15 @@ const itemCardapioSchema = z.object({
   descricao: z.string().max(300).optional().nullable(),
   preco: z.coerce.number().positive('Preço deve ser positivo'),
   imagemUrl: z.string().url('URL inválida').optional().nullable(),
-  vaiParaCozinha: z.coerce.boolean().default(true),
-  ativo: z.coerce.boolean().default(true),
+  vaiParaCozinha: booleanSchema.default(true),
+  ativo: booleanSchema.default(true),
   categoriaId: z.string().min(1, 'Categoria é obrigatória'),
 })
 
 const opcaoGrupoSchema = z
   .object({
     nome: z.string().min(1, 'Nome é obrigatório').max(60),
-    obrigatorio: z.coerce.boolean().default(false),
+    obrigatorio: booleanSchema.default(false),
     minSelecoes: z.coerce.number().int().min(0).default(0),
     maxSelecoes: z.coerce.number().int().min(1).default(1),
     itemCardapioId: z.string().min(1, 'Item do cardápio é obrigatório'),
@@ -68,7 +70,7 @@ const opcaoGrupoSchema = z
 const opcaoSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório').max(60),
   precoAdicional: z.coerce.number().min(0, 'Preço adicional não pode ser negativo').default(0),
-  ativo: z.coerce.boolean().default(true),
+  ativo: booleanSchema.default(true),
   opcaoGrupoId: z.string().min(1, 'Grupo é obrigatório'),
 })
 

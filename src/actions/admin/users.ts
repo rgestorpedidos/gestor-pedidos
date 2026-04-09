@@ -18,11 +18,13 @@ type UserActionResult =
 
 const ROLE_VALUES = [ROLES.SUPERADMIN, ROLES.ADMIN, ROLES.GARCOM, ROLES.COZINHA] as const
 
+const booleanSchema = z.preprocess((val) => val === 'true', z.boolean())
+
 const createUserSchema = z.object({
   email: z.string().email('Email inválido'),
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   role: z.enum(ROLE_VALUES),
-  active: z.coerce.boolean().default(true),
+  active: booleanSchema.default(true),
 })
 
 const updateRoleSchema = z.object({
@@ -30,7 +32,7 @@ const updateRoleSchema = z.object({
 })
 
 const updateActiveSchema = z.object({
-  active: z.coerce.boolean(),
+  active: booleanSchema,
 })
 
 async function requireAdmin(): Promise<AdminContext> {
