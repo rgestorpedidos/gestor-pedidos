@@ -25,6 +25,10 @@ export default function GarcomError({
         <p className="text-sm text-muted-foreground max-w-sm">
           Ocorreu um erro nesta tela. Tente novamente ou recarregue o aplicativo.
         </p>
+        <p className="text-xs text-destructive font-mono mt-2 max-w-sm break-all">{error.message}</p>
+        {error.digest && (
+          <p className="text-xs text-muted-foreground font-mono">digest: {error.digest}</p>
+        )}
       </div>
       <Button onClick={reset} variant="outline">
         Tentar novamente
