@@ -5,6 +5,14 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ---
 
+## [0.15.2] — 2026-04-09
+
+### Correção
+
+- **`UserForm`** — Corrigido crash ao criar usuário: `e.currentTarget` era anulado pelo React dentro do callback assíncrono do `startTransition`, causando erro na chamada `.reset()`. Referência do form agora é capturada antes do async.
+
+---
+
 ## [0.15.1] — 2026-04-09
 
 ### UX do Garçom
