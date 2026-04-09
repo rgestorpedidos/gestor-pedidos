@@ -35,7 +35,8 @@ export function UserForm({ currentRole, children }: UserFormProps) {
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
+    const form = e.currentTarget
+    const formData = new FormData(form)
     formData.set('active', String(active))
     formData.set('role', role)
 
@@ -44,7 +45,7 @@ export function UserForm({ currentRole, children }: UserFormProps) {
 
       if (result.success) {
         toast.success('Usuário criado')
-        e.currentTarget.reset()
+        form.reset()
         setOpen(false)
         setActive(true)
         setRole(ROLES.GARCOM)
