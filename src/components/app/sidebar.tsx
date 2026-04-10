@@ -132,7 +132,7 @@ export function AppSidebar({ userRole, userEmail }: AppSidebarProps) {
                                     <UtensilsCrossed className='size-4' />
                                 </div>
                                 <div className='flex flex-col gap-0.5 leading-none'>
-                                    <span className='font-semibold'>Gestor Pedidos</span>
+                                    <span className='font-semibold'>RGestor Pedidos</span>
                                     <span className='text-xs text-muted-foreground'>v{APP_VERSION}</span>
                                 </div>
                             </div>

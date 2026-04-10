@@ -1,4 +1,4 @@
-# Gestor Pedidos
+# RGestor Pedidos
 
 Sistema de gerenciamento de pedidos em tempo real para bares e restaurantes — app para garçons, painel para cozinha, dashboard para admin.
 

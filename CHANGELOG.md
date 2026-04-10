@@ -1,4 +1,4 @@
-# Changelog — Gestor Pedidos
+# Changelog — RGestor Pedidos
 
 Todas as mudanças significativas do projeto estão documentadas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).

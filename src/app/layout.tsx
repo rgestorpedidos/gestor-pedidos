@@ -15,10 +15,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gestor Pedidos",
+  title: "RGestor Pedidos",
   description: "Gerenciamento de pedidos para bares e restaurantes",
   openGraph: {
-    title: "Gestor Pedidos",
+    title: "RGestor Pedidos",
     description: "Gerenciamento de pedidos para bares e restaurantes",
     type: "website",
     locale: "pt_BR",

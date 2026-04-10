@@ -67,7 +67,7 @@ export default function LoginPage() {
               <UtensilsCrossed className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Gestor Pedidos</CardTitle>
+          <CardTitle className="text-2xl font-bold">RGestor Pedidos</CardTitle>
           <CardDescription>
             Digite seu email para receber o link de acesso
           </CardDescription>
