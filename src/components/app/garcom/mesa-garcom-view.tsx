@@ -39,9 +39,8 @@ export function MesaGarcomView({
   const setActiveModal = useCarrinhoGarcomStore((state) => state.setActiveModal)
   const activeModal = useCarrinhoGarcomStore((state) => state.activeModal)
   
-  const totalItens = useCarrinhoGarcomStore((state) => 
-    isMounted ? (state.carrinhos[mesaId]?.itens ?? []).reduce((acc, i) => acc + i.quantidade, 0) : 0
-  )
+  const itensRaw = useCarrinhoGarcomStore((state) => state.carrinhos[mesaId]?.itens ?? [])
+  const totalItens = isMounted ? itensRaw.reduce((acc, i) => acc + i.quantidade, 0) : 0
 
   useEffect(() => { purgeExpired() }, [purgeExpired])
 
