@@ -15,6 +15,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { createCategoria, updateCategoria } from '@/actions/admin/cardapio'
+import { useLoadingStore } from '@/stores/loading-store'
 
 export interface CategoriaData {
   id: string
@@ -37,16 +38,23 @@ export function CategoriaForm({ categoria, children }: CategoriaFormProps) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
 
-    startTransition(async () => {
-      const result = isEdit
-        ? await updateCategoria(categoria.id, formData)
-        : await createCategoria(formData)
+    const { startLoading, stopLoading } = useLoadingStore.getState()
+    startLoading()
 
-      if (result.success) {
-        toast.success(isEdit ? 'Categoria atualizada' : 'Categoria criada')
-        setOpen(false)
-      } else {
-        toast.error(result.error)
+    startTransition(async () => {
+      try {
+        const result = isEdit
+          ? await updateCategoria(categoria.id, formData)
+          : await createCategoria(formData)
+
+        if (result.success) {
+          toast.success(isEdit ? 'Categoria atualizada' : 'Categoria criada')
+          setOpen(false)
+        } else {
+          toast.error(result.error)
+        }
+      } finally {
+        stopLoading()
       }
     })
   }

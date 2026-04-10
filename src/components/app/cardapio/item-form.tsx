@@ -24,6 +24,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { createItemCardapio, updateItemCardapio } from '@/actions/admin/cardapio'
+import { useLoadingStore } from '@/stores/loading-store'
 
 export interface ItemData {
   id: string
@@ -58,16 +59,23 @@ export function ItemForm({ item, categorias, children }: ItemFormProps) {
     const formData = new FormData(e.currentTarget)
     formData.set('vaiParaCozinha', String(vaiParaCozinha))
 
-    startTransition(async () => {
-      const result = isEdit
-        ? await updateItemCardapio(item.id, formData)
-        : await createItemCardapio(formData)
+    const { startLoading, stopLoading } = useLoadingStore.getState()
+    startLoading()
 
-      if (result.success) {
-        toast.success(isEdit ? 'Item atualizado' : 'Item criado')
-        setOpen(false)
-      } else {
-        toast.error(result.error)
+    startTransition(async () => {
+      try {
+        const result = isEdit
+          ? await updateItemCardapio(item.id, formData)
+          : await createItemCardapio(formData)
+
+        if (result.success) {
+          toast.success(isEdit ? 'Item atualizado' : 'Item criado')
+          setOpen(false)
+        } else {
+          toast.error(result.error)
+        }
+      } finally {
+        stopLoading()
       }
     })
   }

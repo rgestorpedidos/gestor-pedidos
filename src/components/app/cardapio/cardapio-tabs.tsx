@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { deleteCategoria, deleteItemCardapio, toggleItemAtivo } from '@/actions/admin/cardapio'
+import { useLoadingStore } from '@/stores/loading-store'
 import { CategoriaForm } from './categoria-form'
 import { ItemForm } from './item-form'
 import { OpcaoGrupoSheet } from './opcao-grupo-sheet'
@@ -50,9 +51,16 @@ function ToggleAtivo({ id, ativo }: { id: string; ativo: boolean }) {
   const [isPending, startTransition] = useTransition()
 
   function handleToggle(checked: boolean) {
+    const { startLoading, stopLoading } = useLoadingStore.getState()
+    startLoading()
+    
     startTransition(async () => {
-      const result = await toggleItemAtivo(id, checked)
-      if (!result.success) toast.error(result.error)
+      try {
+        const result = await toggleItemAtivo(id, checked)
+        if (!result.success) toast.error(result.error)
+      } finally {
+        stopLoading()
+      }
     })
   }
 
@@ -65,12 +73,19 @@ function DeleteCategoriaButton({ id, nome }: { id: string; nome: string }) {
   const [isPending, startTransition] = useTransition()
 
   function handleConfirm() {
+    const { startLoading, stopLoading } = useLoadingStore.getState()
+    startLoading()
+
     startTransition(async () => {
-      const result = await deleteCategoria(id)
-      if (result.success) {
-        toast.success('Categoria excluída')
-      } else {
-        toast.error(result.error)
+      try {
+        const result = await deleteCategoria(id)
+        if (result.success) {
+          toast.success('Categoria excluída')
+        } else {
+          toast.error(result.error)
+        }
+      } finally {
+        stopLoading()
       }
     })
   }
@@ -110,12 +125,19 @@ function DeleteItemButton({ id, nome }: { id: string; nome: string }) {
   const [isPending, startTransition] = useTransition()
 
   function handleConfirm() {
+    const { startLoading, stopLoading } = useLoadingStore.getState()
+    startLoading()
+    
     startTransition(async () => {
-      const result = await deleteItemCardapio(id)
-      if (result.success) {
-        toast.success('Item excluído')
-      } else {
-        toast.error(result.error)
+      try {
+        const result = await deleteItemCardapio(id)
+        if (result.success) {
+          toast.success('Item excluído')
+        } else {
+          toast.error(result.error)
+        }
+      } finally {
+        stopLoading()
       }
     })
   }

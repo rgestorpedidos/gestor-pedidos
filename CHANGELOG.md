@@ -5,6 +5,19 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ---
 
+## [0.15.4] — 2026-04-09
+
+### Novidades e UX
+
+- **Barra de Loading Global** — Implementada uma barra de progresso premium no topo da tela para indicar processamento de ações assíncronas e transições de página.
+- **Integração de Feedback Visual** — A barra foi integrada nos seguintes fluxos:
+  - Ativação/Desativação de usuários.
+  - Criação de novos usuários.
+  - Criação e edição de categorias/itens no cardápio.
+  - Envio de rodadas e fechamento de conta pelo garçom.
+
+---
+
 ## [0.15.3] — 2026-04-09
 
 ### Correções de Core e UX

@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { Switch } from '@/components/ui/switch'
 import { createUser } from '@/actions/admin/users'
 import { ALL_ROLES, ROLES, type Role } from '@/lib/roles'
+import { useLoadingStore } from '@/stores/loading-store'
 
 const ROLE_LABELS: Record<Role, string> = {
   SUPERADMIN: 'Superadmin',
@@ -40,18 +41,25 @@ export function UserForm({ currentRole, children }: UserFormProps) {
     formData.set('active', String(active))
     formData.set('role', role)
 
-    startTransition(async () => {
-      const result = await createUser(formData)
+    const { startLoading, stopLoading } = useLoadingStore.getState()
+    startLoading()
 
-      if (result.success) {
-        toast.success('Usuário criado')
-        form.reset()
-        setOpen(false)
-        setActive(true)
-        setRole(ROLES.GARCOM)
-        router.refresh()
-      } else {
-        toast.error(result.error)
+    startTransition(async () => {
+      try {
+        const result = await createUser(formData)
+
+        if (result.success) {
+          toast.success('Usuário criado')
+          form.reset()
+          setOpen(false)
+          setActive(true)
+          setRole(ROLES.GARCOM)
+          router.refresh()
+        } else {
+          toast.error(result.error)
+        }
+      } finally {
+        stopLoading()
       }
     })
   }

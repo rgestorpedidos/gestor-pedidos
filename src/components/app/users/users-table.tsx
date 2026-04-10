@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { updateUserRole, setUserActive, deleteUser } from '@/actions/admin/users'
 import { ALL_ROLES, ROLES, type Role } from '@/lib/roles'
+import { useLoadingStore } from '@/stores/loading-store'
 
 type UserActionResult = { success: true } | { success: false; error: string }
 
@@ -57,13 +58,20 @@ function useUserAction() {
   const [isPending, startTransition] = useTransition()
 
   function run(action: () => Promise<UserActionResult>, successMsg: string) {
+    const { startLoading, stopLoading } = useLoadingStore.getState()
+    startLoading()
+    
     startTransition(async () => {
-      const result = await action()
-      if (result.success) {
-        toast.success(successMsg)
-        router.refresh()
-      } else {
-        toast.error(result.error)
+      try {
+        const result = await action()
+        if (result.success) {
+          toast.success(successMsg)
+          router.refresh()
+        } else {
+          toast.error(result.error)
+        }
+      } finally {
+        stopLoading()
       }
     })
   }

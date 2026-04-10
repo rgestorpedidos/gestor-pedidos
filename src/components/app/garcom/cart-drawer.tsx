@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useCarrinhoGarcomStore } from '@/stores/carrinho-garcom'
+import { useLoadingStore } from '@/stores/loading-store'
 import { enviarRodada, fecharPedido } from '@/actions/garcom/pedidos'
 import type { PedidoAtivoData } from './types'
 
@@ -115,14 +116,21 @@ export function CartDrawer({ mesaId, mesaNumero, pedidoAtivo, onClose }: CartDra
       opcoesSelecionadas: i.opcoesSelecionadas,
     }))
 
+    const { startLoading, stopLoading } = useLoadingStore.getState()
+    startLoading()
+
     startRodada(async () => {
-      const result = await enviarRodada(mesaId, itensPayload)
-      if (result.success) {
-        limparCarrinho(mesaId)
-        toast.success('Rodada enviada para a cozinha!')
-        router.refresh()
-      } else {
-        toast.error(result.error)
+      try {
+        const result = await enviarRodada(mesaId, itensPayload)
+        if (result.success) {
+          limparCarrinho(mesaId)
+          toast.success('Rodada enviada para a cozinha!')
+          router.refresh()
+        } else {
+          toast.error(result.error)
+        }
+      } finally {
+        stopLoading()
       }
     })
   }
@@ -134,15 +142,22 @@ export function CartDrawer({ mesaId, mesaNumero, pedidoAtivo, onClose }: CartDra
       return
     }
 
+    const { startLoading, stopLoading } = useLoadingStore.getState()
+    startLoading()
+
     startFecha(async () => {
-      const result = await fecharPedido(mesaId, pedidoAtivo.id, metodoPagamento)
-      if (result.success) {
-        limparCarrinho(mesaId)
-        toast.success('Conta fechada! Mesa liberada.')
-        onClose()
-        router.push('/garcom')
-      } else {
-        toast.error(result.error)
+      try {
+        const result = await fecharPedido(mesaId, pedidoAtivo.id, metodoPagamento)
+        if (result.success) {
+          limparCarrinho(mesaId)
+          toast.success('Conta fechada! Mesa liberada.')
+          onClose()
+          router.push('/garcom')
+        } else {
+          toast.error(result.error)
+        }
+      } finally {
+        stopLoading()
       }
     })
   }
