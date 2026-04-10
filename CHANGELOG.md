@@ -5,6 +5,21 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ---
 
+## [0.15.7] — 2026-04-09
+
+### Fixes e Estabilidade
+
+- **Correção de Reatividade no Carrinho** — Resolvido problema onde o botão de excluir e o contador de itens não atualizavam instantaneamente na tela do garçom.
+- **Prevenção de Infinite Loop (#185)** — Corrigido erro de renderização infinita ao transitar entre estados do carrinho.
+- **Import do LoadingBar** — Corrigida falha no layout global que impedia a exibição da nova barra de progresso.
+
+### UX e UI
+
+- **Melhoria no Fechamento de Conta** — O botão "Fechar Conta" agora fornece feedback visual explícito quando não está disponível (devido a itens pendentes no rascunho ou na cozinha), em vez de ficar invisível.
+- **Versão no Dashboard Admin** — Adicionada exibição da versão atual no cabeçalho do painel administrativo.
+
+---
+
 ## [0.15.4] — 2026-04-09
 
 ### Novidades e UX
