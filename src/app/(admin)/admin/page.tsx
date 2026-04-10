@@ -18,6 +18,7 @@ import {
   Receipt,
 } from 'lucide-react'
 import Link from 'next/link'
+import { APP_VERSION } from '@/lib/version'
 import type { DashboardMetrics } from '@/actions/admin/metrics'
 
 export default function AdminDashboard() {
@@ -70,6 +71,9 @@ export default function AdminDashboard() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <span className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">
+          v{APP_VERSION}
+        </span>
       </div>
 
       {/* Status Card */}
