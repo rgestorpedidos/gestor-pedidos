@@ -296,42 +296,53 @@ export function CartDrawer({ mesaId, mesaNumero, pedidoAtivo, onClose }: CartDra
             </Button>
           )}
 
-          {/* Fechar Conta */}
-          {pedidoAtivo && rascunho.length === 0 && (
-            <>
-              {temEnviados ? (
-                <p className="text-xs text-center text-orange-600 bg-orange-50 rounded-lg px-3 py-2">
-                  Aguarde {enviados.length} item(s) na cozinha antes de fechar a conta
-                </p>
+          {/* Seção de Fechamento de Conta */}
+          {pedidoAtivo && (
+            <div className="pt-2">
+              <Separator className="mb-4" />
+              
+              {rascunho.length > 0 ? (
+                <div className="text-xs text-center text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5">
+                  <p className="font-medium">⚠️ Rodada pendente no carrinho</p>
+                  <p className="mt-0.5">Envie a rodada acima ou remova os itens para poder fechar a conta.</p>
+                </div>
+              ) : temEnviados ? (
+                <div className="text-xs text-center text-orange-600 bg-orange-50 border border-orange-100 rounded-lg px-3 py-2.5">
+                  <p className="font-medium">⏳ Itens em preparo</p>
+                  <p className="mt-0.5">Aguarde {enviados.length} item(s) ficarem prontos na cozinha.</p>
+                </div>
               ) : (
-                <div className="flex gap-2">
-                  <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Pagamento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {METODOS_PAGAMENTO.map((m) => (
-                        <SelectItem key={m.value} value={m.value}>
-                          {m.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="destructive"
-                    className="flex-1 h-10"
-                    onClick={handleFecharConta}
-                    disabled={isPendingFecha || !metodoPagamento}
-                  >
-                    {isPendingFecha ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      'Fechar conta'
-                    )}
-                  </Button>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
+                      <SelectTrigger className="flex-1 h-11">
+                        <SelectValue placeholder="Forma de pagamento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {METODOS_PAGAMENTO.map((m) => (
+                          <SelectItem key={m.value} value={m.value}>
+                            {m.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button
+                      variant="destructive"
+                      className="flex-1 h-11 font-semibold"
+                      onClick={handleFecharConta}
+                      disabled={isPendingFecha || !metodoPagamento}
+                    >
+                      {isPendingFecha ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        'Fechar conta'
+                      )}
+                    </Button>
+                  </div>
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
       </SheetContent>
