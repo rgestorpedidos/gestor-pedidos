@@ -250,13 +250,13 @@ export function MesaGarcomView({
 
       {/* Botão flutuante do carrinho / conta */}
       {(totalItens > 0 || pedidoAtivo !== null) && activeModal !== 'cart' && (
-        <div className="fixed bottom-4 left-4 right-4 z-20">
+        <div className="sticky bottom-6 px-4 z-20 mt-auto pointer-events-none">
           <Button
             className={cn(
-              "w-full h-14 text-base font-semibold rounded-2xl shadow-lg transition-all active:scale-95",
+              "w-full h-14 text-base font-semibold rounded-2xl shadow-xl transition-all active:scale-95 pointer-events-auto",
               totalItens > 0 
-                ? "bg-primary text-primary-foreground" 
-                : "bg-slate-900 text-white hover:bg-slate-800"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                : "bg-black text-white hover:bg-zinc-900 border-none"
             )}
             onClick={() => setActiveModal('cart')}
           >
