@@ -79,11 +79,11 @@ export function CartDrawer({ mesaId, mesaNumero, pedidoAtivo, onClose }: CartDra
 
   useEffect(() => { setIsMounted(true) }, [])
 
-  const { rascunho, removerItem, limparCarrinho } = useCarrinhoGarcomStore((state) => ({
-    rascunho: isMounted ? state.carrinhos[mesaId]?.itens ?? [] : [],
-    removerItem: state.removerItem,
-    limparCarrinho: state.limparCarrinho,
-  }))
+  const removerItem = useCarrinhoGarcomStore((state) => state.removerItem)
+  const limparCarrinho = useCarrinhoGarcomStore((state) => state.limparCarrinho)
+  const rascunho = useCarrinhoGarcomStore((state) => 
+    isMounted ? state.carrinhos[mesaId]?.itens ?? [] : []
+  )
 
 
   const enviados = pedidoAtivo?.itens.filter((i) => i.status === 'ENVIADO') ?? []

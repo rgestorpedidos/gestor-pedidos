@@ -34,15 +34,14 @@ export function MesaGarcomView({
   // Polling de 10s — pausa quando modal/drawer aberto
   useTabPolling(mesaId, 10_000)
 
-  const { totalItens, activeModal, adicionarItem, purgeExpired, setActiveModal } = useCarrinhoGarcomStore((state) => ({
-    totalItens: isMounted 
-      ? (state.carrinhos[mesaId]?.itens ?? []).reduce((acc, i) => acc + i.quantidade, 0)
-      : 0,
-    activeModal: state.activeModal,
-    adicionarItem: state.adicionarItem,
-    purgeExpired: state.purgeExpired,
-    setActiveModal: state.setActiveModal,
-  }))
+  const adicionarItem = useCarrinhoGarcomStore((state) => state.adicionarItem)
+  const purgeExpired = useCarrinhoGarcomStore((state) => state.purgeExpired)
+  const setActiveModal = useCarrinhoGarcomStore((state) => state.setActiveModal)
+  const activeModal = useCarrinhoGarcomStore((state) => state.activeModal)
+  
+  const totalItens = useCarrinhoGarcomStore((state) => 
+    isMounted ? (state.carrinhos[mesaId]?.itens ?? []).reduce((acc, i) => acc + i.quantidade, 0) : 0
+  )
 
   useEffect(() => { purgeExpired() }, [purgeExpired])
 
