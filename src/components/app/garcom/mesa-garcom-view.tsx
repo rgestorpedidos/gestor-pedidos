@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, ShoppingCart, Receipt } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -248,18 +248,32 @@ export function MesaGarcomView({
         />
       )}
 
-      {/* ── Botão flutuante do carrinho ──────────────────────────────────────── */}
-      {totalItens > 0 && activeModal !== 'cart' && (
+      {/* Botão flutuante do carrinho / conta */}
+      {(totalItens > 0 || pedidoAtivo !== null) && activeModal !== 'cart' && (
         <div className="fixed bottom-4 left-4 right-4 z-20">
           <Button
-            className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg"
+            className={cn(
+              "w-full h-14 text-base font-semibold rounded-2xl shadow-lg transition-all active:scale-95",
+              totalItens > 0 
+                ? "bg-primary text-primary-foreground" 
+                : "bg-slate-900 text-white hover:bg-slate-800"
+            )}
             onClick={() => setActiveModal('cart')}
           >
-            <ShoppingCart className="h-5 w-5 mr-2" />
-            Ver carrinho
-            <Badge className="ml-2 bg-white text-primary hover:bg-white">
-              {totalItens}
-            </Badge>
+            {totalItens > 0 ? (
+              <>
+                <ShoppingCart className="h-5 w-5 mr-2" />
+                Ver carrinho
+                <Badge className="ml-2 bg-white text-primary hover:bg-white border-none">
+                  {totalItens}
+                </Badge>
+              </>
+            ) : (
+              <>
+                <Receipt className="h-5 w-5 mr-2" />
+                Ver conta
+              </>
+            )}
           </Button>
         </div>
       )}
